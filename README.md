@@ -1,4 +1,4 @@
-#{PHANTOM GUNNER}
+# {PHANTOM GUNNER}
 ver 0.1
 
 Game is available to play online at: https://kigaru.github.io/Phantom-Gunner
