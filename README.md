@@ -4,28 +4,37 @@ ver 0.1
 Game is available to play online at: https://kigaru.github.io/Phantom-Gunner
 
 *************************
-Controls
-*************************
+## Controls
+
 WASD - Movement
+
 Mouse - First person view
+
 Left click - Fire weapon / unhide weapon
+
 E - Use object / Equip Weapon
+
 G - Drop weapon
+
 H - Hide / Unhide weapon
+
 Space - Jump
+
 Left Shift - Sprint
+
 Left square bracket "\[" - sfx volume down
+
 Right square bracket "\]" - sfx volume up
 
+
 *****************
-GOAL
-*****************
+## GOAL
+
 Proceed to the arch to the next level!
 Feel free to explore the small area.
 
 *********************************
-Release Notes
-*********************************
+## Release Notes
 
 Ver 0.1
 - The player is able to navigate the world with movement keys and the mouse
@@ -34,8 +43,7 @@ Ver 0.1
 - Volume of the ambient can be decreased if the user wants to
 
 *************************
-Known Bugs
-*************************
+## Known Bugs
 
 - The camera can be spun vertically indefinitely with no clamps
 - The fps collider can sometimes go through certain walls if sprinting too fast
