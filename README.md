@@ -1,5 +1,5 @@
 # {PHANTOM GUNNER}
-ver 0.1
+ver 0.2
 
 Game is available to play online at: https://kigaru.github.io/Phantom-Gunner
 
@@ -26,15 +26,24 @@ Left square bracket "\[" - sfx volume down
 
 Right square bracket "\]" - sfx volume up
 
+P - Record your current position
+
+O - (after death) Replay your saved positions
+
 
 *****************
 ## GOAL
 
 Proceed to the arch to the next level!
-Feel free to explore the small area.
+Feel free to explore the small areas.
 
 *********************************
 ## Release Notes
+
+Ver 0.2
+- AI will follow the player if they see the player
+- Prototype for an office building (level 2) has been implemented
+- Recording of the player's position before death and replaying them after death has been implemented
 
 Ver 0.1
 - The player is able to navigate the world with movement keys and the mouse
@@ -52,3 +61,4 @@ Ver 0.1
 - Moving boxes sometimes doesn't follow the player when picked up
 - Looking down too fast when holding a box may shoot the player out into the sky
 - The player shadow displays a floating gun
+- The ghost of the player sometimes spawn in the last position of the player before death
