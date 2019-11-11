@@ -9,30 +9,48 @@ public class Player : MonoBehaviour
     private float health;
     private static float maxHealth = 0;
     private static float cappedHealth;
+    private List<GhostPosContainer> deathPositions;
+    private List<GhostPosContainer> alivePositions;
     private GameObject[] inventory;
 
-    
-    // Start is called before the first frame update
-    void Start()
+
+    private void Awake()
     {
         gm = GameManager.gameManager;
         if (gm.getPlayer() != null)
         {
             GameObject player = gm.getPlayer();
+            player.GetComponent<Player>().deathPositions = player.GetComponent<Player>().alivePositions;
+            player.GetComponent<Player>().alivePositions = new List<GhostPosContainer>();
+            player.SetActive(true);
             player.transform.SetPositionAndRotation(gameObject.transform.position, gameObject.transform.rotation);
+            if(player.GetComponent<Player>().health <= 0)
+            {
+                player.GetComponent<Player>().health = cappedHealth;
+            }
             gm.updateHealthText(player.GetComponent<Player>().health);
-            if(player.GetComponent<FPSBody>().getGun() != null)
+            if (player.GetComponent<FPSBody>().getGun() != null)
             {
                 Weapon playerWeapon = player.GetComponent<FPSBody>().getGun().GetComponent<Weapon>();
                 gm.updateAmmoText(playerWeapon.getAmmoInMag(), 30); //TODO need to refactor total ammo when the inventory is finally implemented
+            }
+            else
+            {
+                gm.updateAmmoText(0, 0);
             }
             Destroy(gameObject);
         }
         else
         {
+            gm.snapshotPlayer();
+            alivePositions = new List<GhostPosContainer>();
             maxHealth = 0;
         }
+    }
 
+    // Start is called before the first frame update
+    void Start()
+    {
         if (maxHealth == 0)
         {
             maxHealth = 100;
@@ -45,8 +63,35 @@ public class Player : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    private void Update()
+    void Update()
     {
+    }
+
+    public void capturePositionRecording()
+    {
+
+        GhostPosContainer item = new GhostPosContainer(transform.position, transform.rotation);
+        alivePositions.Add(item);
+    }
+
+    public GhostPosContainer getOldestRecordedPosition()
+    {
+        if (deathPositions != null)
+        {
+            if (deathPositions.Count != 0)
+            {
+                GhostPosContainer toReturn = deathPositions[0];
+                deathPositions.RemoveAt(0);
+                return toReturn;
+            }
+        }
+        return null;
+    }
+
+
+    public void resetPlayer()
+    {
+        maxHealth = 0;
     }
 
     public void hurt(float hp)
@@ -73,7 +118,7 @@ public class Player : MonoBehaviour
                 hurt(col.GetComponent<Explosion>().getDamage());
                 break;
             case "KillPlane":
-                gm.killPlayer(gameObject);
+                hurt(health);
                 break;
             case "Win":
                 gm.loadLevel(2);

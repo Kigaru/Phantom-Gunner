@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.Audio;
+using System;
 
 public class GameManager : MonoBehaviour
 {
@@ -12,9 +13,10 @@ public class GameManager : MonoBehaviour
     public Text ammoText;
     public AudioMixer mixer;
     private GameObject player;
+    public GameObject ghost;
     int levelNumber = 0;
     bool paused;
-
+    bool retryRun;
     void Awake()
     {
         if (gameManager == null)
@@ -25,6 +27,15 @@ public class GameManager : MonoBehaviour
         {
             if (healthText != null)
             {
+                print(gameManager.retryRun);
+                gameManager.ghost = ghost;
+                if (gameManager.retryRun)
+                {
+                    gameManager.ghost = Instantiate(gameManager.ghost, gameManager.player.transform.position, gameManager.player.transform.rotation);
+                    gameManager.ghost.transform.position = gameManager.player.transform.position;
+                    gameManager.ghost.transform.rotation = gameManager.player.transform.rotation;
+                }
+                
                 gameManager.healthText = healthText;
                 gameManager.ammoText = ammoText;
             }
@@ -42,6 +53,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        gameManager.retryRun = false;
         gameManager.paused = true;
     }
 
@@ -69,7 +81,8 @@ public class GameManager : MonoBehaviour
 
     public void killPlayer(GameObject player)
     {
-        Destroy(player);
+        gameManager.retryRun = true;
+        player.SetActive(false);
         pauseGame();
         SceneManager.LoadScene("Death");
     }
@@ -93,6 +106,12 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void enterBuilding(string name)
+    {
+        gameManager.retryRun = false;
+
+    }
+
     public void loadLevel(int levelNumber)
     {
         if (levelNumber == 0)
@@ -107,21 +126,38 @@ public class GameManager : MonoBehaviour
         else
         {
             gameManager.levelNumber = levelNumber;
-            snapshotPlayer();
+            if (gameManager.player != null)
+            {
+                snapshotPlayer();
+            }
             SceneManager.LoadScene("Loading");
         }
+    }
+
+    public void setGhostTransform(GhostPosContainer ghostpos)
+    {
+         gameManager.ghost.transform.position = ghostpos.Pos;
+         gameManager.ghost.transform.rotation = ghostpos.Rot;
+    }
+
+    public void reloadLevel()
+    {
+        SceneManager.LoadScene("Loading");
     }
 
     public void loadMainMenu()
     {
         gameManager.levelNumber = 0;
-        gameManager.player = null;
+        //gameManager.player.GetComponent<Player>().resetPlayer();
         SceneManager.LoadScene("Splash");
     }
 
     public void snapshotPlayer()
     {
-        gameManager.player = GameObject.FindGameObjectWithTag("Player");
+        if (GameObject.FindGameObjectWithTag("Player"))
+        {
+            gameManager.player = GameObject.FindGameObjectWithTag("Player");
+        }
     }
 
     public GameObject getPlayer()

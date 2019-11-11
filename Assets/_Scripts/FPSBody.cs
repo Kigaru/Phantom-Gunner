@@ -16,7 +16,8 @@ public class FPSBody : MonoBehaviour
     public KeyCode jumpKey = KeyCode.Space;
     public KeyCode sprintKey = KeyCode.LeftShift;
     //TO BE DELETED
-    public KeyCode debugKey = KeyCode.P;
+    public KeyCode recordKey = KeyCode.P;
+    public KeyCode playBackKey = KeyCode.O;
     public KeyCode volUpKey = KeyCode.RightBracket;
     public KeyCode volDownKey = KeyCode.LeftBracket;
     
@@ -86,6 +87,14 @@ public class FPSBody : MonoBehaviour
         if(Input.GetKeyDown(volUpKey))
         {
             gm.changeSFXVolume(5);
+        }
+        if (Input.GetKeyDown(recordKey))
+        {
+            GetComponent<Player>().capturePositionRecording();
+        }
+        if (Input.GetKeyDown(playBackKey))
+        {
+            gm.setGhostTransform(GetComponent<Player>().getOldestRecordedPosition());
         }
 
     }

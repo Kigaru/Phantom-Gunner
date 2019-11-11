@@ -28,12 +28,4 @@ public class Enemy : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if(other.gameObject.tag == "Player")
-        {
-            other.gameObject.GetComponent<Player>().hurt(attack);
-        }   
-    }
 }

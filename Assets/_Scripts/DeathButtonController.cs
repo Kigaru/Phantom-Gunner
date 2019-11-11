@@ -10,4 +10,9 @@ public class DeathButtonController : MonoBehaviour
     {
         GameManager.gameManager.loadMainMenu();
     }
+
+    public void retry()
+    {
+        GameManager.gameManager.reloadLevel();
+    }
 }
