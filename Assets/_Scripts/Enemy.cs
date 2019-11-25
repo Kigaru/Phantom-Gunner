@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
+    public bool dead = false;
     public float health = 100;
     public float attack = 25;
     public GameObject drop;
@@ -35,6 +36,7 @@ public class Enemy : MonoBehaviour
             player.fixHP(10);
             player.heal(5);
             enemyCount--;
+            dead = true;
             Destroy(gameObject);
         }
     }

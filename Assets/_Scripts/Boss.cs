@@ -6,6 +6,7 @@ public class Boss : MonoBehaviour
 {
     private void OnDestroy()
     {
-        GameManager.gameManager.win();
+        if(GetComponent<Enemy>().dead)
+            GameManager.gameManager.win();
     }
 }
