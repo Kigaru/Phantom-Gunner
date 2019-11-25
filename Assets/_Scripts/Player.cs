@@ -5,7 +5,7 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     private GameManager gm;
-
+    private int score;
     private float health;
     private static float maxHealth = 0;
     private static float cappedHealth;
@@ -29,15 +29,7 @@ public class Player : MonoBehaviour
                 player.GetComponent<Player>().health = cappedHealth;
             }
             gm.updateHealthText(player.GetComponent<Player>().health);
-            if (player.GetComponent<FPSBody>().getGun() != null)
-            {
-                Weapon playerWeapon = player.GetComponent<FPSBody>().getGun().GetComponent<Weapon>();
-                gm.updateAmmoText(playerWeapon.getAmmoInMag(), 30); //TODO need to refactor total ammo when the inventory is finally implemented
-            }
-            else
-            {
-                gm.updateAmmoText(0, 0);
-            }
+            gm.updateScoreText(player.GetComponent<Player>().score);
             Destroy(gameObject);
         }
         else
@@ -51,6 +43,7 @@ public class Player : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        score = 0;
         if (maxHealth == 0)
         {
             maxHealth = 100;
@@ -59,6 +52,8 @@ public class Player : MonoBehaviour
 
         health = cappedHealth;
         gm.updateHealthText(health);
+        gm.updateAmmoText(-1, -1);
+        gm.updateScoreText(score);
         inventory = new GameObject[10];
         DontDestroyOnLoad(gameObject);
     }
@@ -108,6 +103,38 @@ public class Player : MonoBehaviour
         }
         gm.updateHealthText(health);
     }
+    public void heal(float amnt)
+    {
+        if (health + amnt > cappedHealth)
+        {
+            health = cappedHealth;
+        }
+        else health += amnt;
+        gm.updateHealthText(health);
+    }
+    public void fixHP(float amnt)
+    {
+        if (cappedHealth + amnt > maxHealth)
+        {
+            cappedHealth = maxHealth;
+        }
+        else cappedHealth += amnt;
+    }
+
+    public void addScore(int amnt)
+    {
+        score += amnt;
+        gm.updateScoreText(score);
+    }
+
+    public int getScore()
+    {
+        return score;
+    }
+    public float getHealth()
+    {
+        return health;
+    }
 
     private void OnTriggerEnter(Collider col)
     {
@@ -121,7 +148,7 @@ public class Player : MonoBehaviour
                 hurt(health);
                 break;
             case "Win":
-                gm.loadLevel(2);
+                gm.enterBuilding(2);
                 break;
             default:
                 break;

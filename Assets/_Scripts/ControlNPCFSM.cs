@@ -67,8 +67,11 @@ public class ControlNPCFSM : MonoBehaviour
         
         handleVision();
         handlePatrol();
-        handleFollow();
-        handleAttack();
+        if (GameManager.gameManager.getPlayer().activeSelf)
+        {
+            handleFollow();
+            handleAttack();
+        }
     }
 
     void handleVision()
@@ -146,5 +149,10 @@ public class ControlNPCFSM : MonoBehaviour
                 anim.SetBool("withinAttackRange", false);
             }
         }
+    }
+
+    public int getDifficulty()
+    {
+        return (int)myType;
     }
 }

@@ -4,12 +4,20 @@ using UnityEngine;
 
 public class Weapon : MonoBehaviour
 {
-    public string weaponName;
-    public float range;
-    public float damage;
-    public int magazineSize;
-    public int ammoInMag;
-    public GameObject bulletParticles;
+    [SerializeField]
+    private string weaponName;
+    [SerializeField]
+    private float range;
+    [SerializeField]
+    private float damage;
+    [SerializeField]
+    private int magazineSize;
+    [SerializeField]
+    private int ammoInMag;
+    [SerializeField]
+    private int ammoInReserve;
+    [SerializeField]
+    private GameObject bulletParticles;
 
     public string getWeaponName()
     {
@@ -44,10 +52,38 @@ public class Weapon : MonoBehaviour
         return magazineSize;
     }
 
+    public void reload()
+    {
+        if(ammoInReserve <= magazineSize-ammoInMag)
+        {
+            ammoInMag += ammoInReserve;
+            ammoInReserve = 0;
+        }
+        else
+        {
+            ammoInReserve -= magazineSize-ammoInMag;
+            ammoInMag = magazineSize;
+
+        }
+        GameManager.gameManager.updateAmmoText(ammoInMag, ammoInReserve);
+    }
+
+    public int getAmmoInReserve()
+    {
+        return ammoInReserve;
+    }
+
+    public void increaseAmmoInReserve(int amnt)
+    {
+        ammoInReserve += amnt;
+        if (ammoInReserve > 999) ammoInReserve = 999;
+        GameManager.gameManager.updateAmmoText(ammoInMag, ammoInReserve);
+    }
+
     public void fire()
     {
         ammoInMag--;
-        GameManager.gameManager.updateAmmoText(ammoInMag, magazineSize);
+        GameManager.gameManager.updateAmmoText(ammoInMag, ammoInReserve);
 
     }
 }

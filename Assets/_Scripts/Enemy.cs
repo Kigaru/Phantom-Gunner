@@ -7,7 +7,12 @@ public class Enemy : MonoBehaviour
     public float health = 100;
     public float attack = 25;
     public GameObject drop;
+    public static int enemyCount;
 
+    private void Awake()
+    {
+        enemyCount++;
+    }
     public float getHealth()
     {
         return health;
@@ -21,10 +26,15 @@ public class Enemy : MonoBehaviour
         }
         else
         {
-            if(drop != null)
+            Player player = GameManager.gameManager.getPlayer().GetComponent<Player>();
+            if (drop != null)
             {
                 Instantiate(drop, gameObject.transform.position, gameObject.transform.rotation);
+                player.addScore((GetComponent<ControlNPCFSM>().getDifficulty() + 1) * 2);
             }
+            player.fixHP(10);
+            player.heal(5);
+            enemyCount--;
             Destroy(gameObject);
         }
     }

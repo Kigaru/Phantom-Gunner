@@ -4,19 +4,24 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.Audio;
-using System;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager gameManager;
     public Text healthText;
     public Text ammoText;
+    public Text scoreText;
+    public GameObject reloadBar;
+    public GameObject pauseMenu;
     public AudioMixer mixer;
     private GameObject player;
     public GameObject ghost;
-    int levelNumber = 0;
+    public int levelNumber = 0;
     bool paused;
-    bool retryRun;
+    bool retryRun, didPlayerHaveGunAtStart;
+    bool isPlayerReloading;
+    public bool iAmSilverOneMode;
+    float reloadProgress;
     void Awake()
     {
         if (gameManager == null)
@@ -25,24 +30,44 @@ public class GameManager : MonoBehaviour
         }
         else
         {
+            gameManager.isPlayerReloading = false;
+            gameManager.reloadProgress = 0;
             if (healthText != null)
             {
-                print(gameManager.retryRun);
+                reloadBar.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 30);
+                reloadBar.transform.parent.gameObject.SetActive(false);
                 gameManager.ghost = ghost;
                 if (gameManager.retryRun)
                 {
                     gameManager.ghost = Instantiate(gameManager.ghost, gameManager.player.transform.position, gameManager.player.transform.rotation);
-                    gameManager.ghost.transform.position = gameManager.player.transform.position;
+                    gameManager.ghost.transform.position = -100 * gameManager.player.transform.position;
                     gameManager.ghost.transform.rotation = gameManager.player.transform.rotation;
+
+                    if (!didPlayerHaveGunAtStart)
+                    {
+                        gameManager.player.GetComponent<FPSBody>().deleteGun();
+                        updateAmmoText(-1, -1);
+                    }
+                    else
+                    {
+                        Weapon playerWeapon = gameManager.player.GetComponent<FPSBody>().getGun().GetComponent<Weapon>();
+                        updateAmmoText(playerWeapon.getAmmoInMag(), playerWeapon.getAmmoInReserve());
+                    }
                 }
                 
                 gameManager.healthText = healthText;
                 gameManager.ammoText = ammoText;
+                gameManager.scoreText = scoreText;
+                gameManager.reloadBar = reloadBar;
+                gameManager.pauseMenu = pauseMenu;
             }
             else
             {
                 gameManager.healthText = null; // splash screen etc.
                 gameManager.ammoText = null;
+                gameManager.scoreText = null;
+                gameManager.reloadBar = null;
+                gameManager.pauseMenu = null;
             }
             gameManager.mixer = mixer; // will always be there
             Destroy(gameObject);
@@ -53,25 +78,46 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        snapshotPlayer();
         gameManager.retryRun = false;
         gameManager.paused = true;
+        gameManager.isPlayerReloading = false;
+        gameManager.reloadProgress = 0;
+        gameManager.didPlayerHaveGunAtStart = false;
     }
 
     // Update is called once per frame
     void Update()
     {
+
+        if(isPlayerReloading)
+        {
+            reloadProgress += Time.deltaTime;
+            gameManager.reloadBar.GetComponent<RectTransform>().sizeDelta = new Vector2(reloadProgress * 200, 30);
+
+            if(gameManager.reloadBar.GetComponent<RectTransform>().sizeDelta.x > 400)
+            {
+                isPlayerReloading = false;
+                gameManager.reloadBar.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 30);
+                reloadBar.transform.parent.gameObject.SetActive(false);
+                player.GetComponent<FPSBody>().getGun().GetComponent<Weapon>().reload();
+            }
+        }
+
     }
 
     public void pauseGame()
     {
         Cursor.lockState = CursorLockMode.None;
         gameManager.paused = true;
+        pauseMenu.SetActive(true);
     }
 
     public void unPauseGame()
     {
         Cursor.lockState = CursorLockMode.Locked;
         gameManager.paused = false;
+        pauseMenu.SetActive(false);
     }
 
     public bool isPaused()
@@ -87,18 +133,23 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene("Death");
     }
 
+    public void win()
+    {
+        player.SetActive(false);
+        pauseGame();
+        SceneManager.LoadScene("Win");
+    }
+
     public void updateHealthText(float health)
     {
-        //NEED THIS FOR RELOAD
-        //gameManager.healthBar.GetComponent<RectTransform>().sizeDelta = new Vector2(health * 2, 50);
         gameManager.healthText.text = health.ToString();
     }
 
-    public void updateAmmoText(int ammo, int ammoCapacity)
+    public void updateAmmoText(int ammo, int ammoInReserve)
     {
-        if(ammoCapacity != 0)
+        if(ammoInReserve != -1)
         {
-            ammoText.text = ammo + "/" + ammoCapacity;
+            ammoText.text = ammo + "/" + ammoInReserve;
         }
         else
         {
@@ -106,9 +157,30 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void enterBuilding(string name)
+    public void updateScoreText(int score)
+    {
+        gameManager.scoreText.text = score.ToString();
+    }
+
+    public void beginWeaponReload()
+    {
+        reloadBar.transform.parent.gameObject.SetActive(true);
+        reloadProgress = 0;
+        isPlayerReloading = true;
+    }
+
+    public void stopReloading() 
+    {
+        gameManager.reloadBar.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 30);
+        reloadBar.transform.parent.gameObject.SetActive(false);
+        reloadProgress = 0;
+        isPlayerReloading = false;
+    }
+
+    public void enterBuilding(int levelNumber)
     {
         gameManager.retryRun = false;
+        loadLevel(levelNumber);
 
     }
 
@@ -148,7 +220,9 @@ public class GameManager : MonoBehaviour
     public void loadMainMenu()
     {
         gameManager.levelNumber = 0;
-        //gameManager.player.GetComponent<Player>().resetPlayer();
+        retryRun = false;
+        gameManager.player.GetComponent<Player>().resetPlayer();
+        Destroy(gameManager.player);
         SceneManager.LoadScene("Splash");
     }
 
@@ -157,6 +231,7 @@ public class GameManager : MonoBehaviour
         if (GameObject.FindGameObjectWithTag("Player"))
         {
             gameManager.player = GameObject.FindGameObjectWithTag("Player");
+            didPlayerHaveGunAtStart = player.GetComponent<FPSBody>().getGun() ? true : false;
         }
     }
 
@@ -175,4 +250,10 @@ public class GameManager : MonoBehaviour
         mixer.GetFloat("SFX", out currentLevel);
         mixer.SetFloat("SFX", level + currentLevel);
     }
+
+    public bool IsPlayerReloading()
+    {
+        return isPlayerReloading;
+    }
+
 }

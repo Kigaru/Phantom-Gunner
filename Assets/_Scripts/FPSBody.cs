@@ -21,12 +21,19 @@ public class FPSBody : MonoBehaviour
     public KeyCode volUpKey = KeyCode.RightBracket;
     public KeyCode volDownKey = KeyCode.LeftBracket;
     
-
-    public float playerSpeed = 10;
-    public float jumpSpeed = 350;
-    public float sprintFactor = 3;
-    public float sensitivity = 2;
-    public float pickUpDistance = 2.2f;
+    [SerializeField]
+    private float playerSpeed = 2;
+    [SerializeField]
+    private float jumpSpeed = 200;
+    [SerializeField]
+    private float sprintFactor = 3;
+    [SerializeField]
+    private float sensitivity = 2;
+    [SerializeField]
+    private float pickUpDistance = 2.2f;
+    [SerializeField]
+    [Tooltip("Vertical view clamp value must be between 0 and 90 inclusive.")]
+    private float vClamp = 90; 
     private bool grounded;
     public GameObject weaponPivot; //for correct rotation
     private GameObject gun;
@@ -45,10 +52,6 @@ public class FPSBody : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         gm = GameManager.gameManager;
-        if (gun == null)
-        {
-            gm.updateAmmoText(0,0);
-        }
         eyes = gameObject.GetComponentInChildren<Camera>();
 
         forwardMovement = 0;
@@ -63,7 +66,7 @@ public class FPSBody : MonoBehaviour
         if (!gm.isPaused())
         {
             //global keys
-            if (Input.GetKey(KeyCode.Escape))
+            if (Input.GetKeyDown(KeyCode.Escape))
             {
                 gm.pauseGame();
             }
@@ -74,12 +77,15 @@ public class FPSBody : MonoBehaviour
             handlePlayerAction();
 
         }
+        else
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                gm.unPauseGame();
+            }
+        }
 
         //TODO TO REFACTOR
-        if(Input.GetKey(fireKey))
-        {
-            gm.unPauseGame();
-        }
         if(Input.GetKeyDown(volDownKey))
         {
             gm.changeSFXVolume(-5);
@@ -123,8 +129,17 @@ public class FPSBody : MonoBehaviour
         
         if (Input.GetKeyDown(jumpKey))
         {
-            rb.AddForce(new Vector3(0, jumpSpeed, 0));
+            //GameObject a = new GameObject();
+            //Instantiate(a, transform.position - new Vector3((GetComponent<Collider>().bounds.size.x / 2) * -transform.forward.x, GetComponent<Collider>().bounds.size.y - 0.4f, (GetComponent<Collider>().bounds.size.z / 2) * -transform.forward.z) , Quaternion.identity);
+            //Destroy(a);
+            if (Physics.Raycast(transform.position - new Vector3(0, GetComponent<Collider>().bounds.size.y - 0.2f, 0), Vector3.down, 0.3f) || 
+                Physics.Raycast(transform.position - new Vector3((GetComponent<Collider>().bounds.size.x / 2) * -transform.forward.x, GetComponent<Collider>().bounds.size.y - 0.4f, (GetComponent<Collider>().bounds.size.z / 2) * -transform.forward.z), Vector3.down, 0.3f))
+            {
+                rb.AddForce(new Vector3(0, jumpSpeed, 0));
+            }
         }
+
+
         if (Input.GetKey(sprintKey))
         {
             forwardMovement *= sprintFactor;
@@ -137,10 +152,24 @@ public class FPSBody : MonoBehaviour
 
     void handleView()
     {
-        rb.transform.RotateAround(rb.transform.position, rb.transform.up, Input.GetAxis("Mouse X") * sensitivity * 25 * Time.deltaTime);
-        eyes.transform.RotateAround(eyes.transform.position, eyes.transform.right, -Input.GetAxis("Mouse Y") * sensitivity * 25 * Time.deltaTime);
+        rb.transform.RotateAround(rb.transform.position, rb.transform.up, Input.GetAxis("Mouse X") * sensitivity * 25 * Time.deltaTime); //rightleft
+
+        float lookDelta = -Input.GetAxis("Mouse Y") * sensitivity * 25 * Time.deltaTime;
+        if (eyes.transform.localEulerAngles.x + lookDelta > 360 - vClamp || eyes.transform.localEulerAngles.x + lookDelta < 0 + vClamp)
+        {
+            eyes.transform.RotateAround(eyes.transform.position, eyes.transform.right, lookDelta); // updown
+        }
+        
+        if(gm.iAmSilverOneMode)
+        {
+            if(eyes.transform.localEulerAngles.x < 180)
+            {
+                eyes.transform.RotateAround(eyes.transform.position, eyes.transform.right, -5 * Time.deltaTime);
+            }
+        }
         rb.transform.rotation = Quaternion.Euler(rb.transform.eulerAngles.x, rb.transform.eulerAngles.y, 0);
         rayFromPlayer = eyes.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
+
 
     }
 
@@ -150,7 +179,7 @@ public class FPSBody : MonoBehaviour
         {
             if (Input.GetKeyDown(fireKey))
             {
-                if (gun.gameObject.activeInHierarchy)
+                if (gun.gameObject.activeInHierarchy && !gm.IsPlayerReloading()) 
                 {
                     if (gun.GetComponent<Weapon>().hasAmmo()) {
                         gun.GetComponent<Weapon>().fire();
@@ -196,6 +225,7 @@ public class FPSBody : MonoBehaviour
             {
                 if(gun.gameObject.activeInHierarchy)
                 {
+                    gm.stopReloading();
                     gun.gameObject.SetActive(false);
                 }
                 else
@@ -213,10 +243,15 @@ public class FPSBody : MonoBehaviour
         {
             // Multiple checks for guns & buttons in a single line
             if (hit.collider.gameObject.tag == "Gun" ||
-                (hit.collider.gameObject.tag == "Movable" && prop == null)) 
+                (hit.collider.gameObject.tag == "Movable" && prop == null) || 
+                hit.collider.gameObject.tag == "Ammo") 
             {
                 interactableObject = hit.collider.gameObject;
             }
+        }
+        else
+        {
+            interactableObject = null;
         }
 
         if (Input.GetKeyDown(useKey))
@@ -236,7 +271,7 @@ public class FPSBody : MonoBehaviour
                             gun.transform.SetParent(weaponPivot.transform);
                             gun.transform.localPosition = Vector3.zero;
                             gun.transform.localEulerAngles = Vector3.zero;
-                            gm.updateAmmoText(gun.GetComponent<Weapon>().getAmmoInMag(), gun.GetComponent<Weapon>().getAmmoCapacity());
+                            gm.updateAmmoText(gun.GetComponent<Weapon>().getAmmoInMag(), gun.GetComponent<Weapon>().getAmmoInReserve());
                         }
                         else
                         {
@@ -250,6 +285,17 @@ public class FPSBody : MonoBehaviour
                             interactableObject = null;
                             prop.GetComponent<Rigidbody>().useGravity = false;
                             prop.transform.SetParent(eyes.transform);
+                        }
+                        break;
+                    case "Ammo":
+                        if(gun!=null)
+                        {
+                            Weapon weapon = gun.GetComponent<Weapon>();
+                            if (weapon.getAmmoInReserve() != 999)
+                            {
+                                weapon.increaseAmmoInReserve(weapon.getAmmoCapacity());
+                                Destroy(interactableObject);
+                            }
                         }
                         break;
                     default:
@@ -271,10 +317,24 @@ public class FPSBody : MonoBehaviour
                 gun.GetComponent<Collider>().enabled = true;
                 gun.GetComponent<Rigidbody>().isKinematic = false;
                 gun = null;
-                gm.updateAmmoText(0, 0);
+                gm.updateAmmoText(-1, -1);
+                gm.stopReloading();
             }
         }
-        if(prop != null && Vector3.Distance(rayFromPlayer.origin,hit.point) > pickUpDistance)
+        if (Input.GetKey(reloadKey))
+        {
+            if (gun != null && gun.activeSelf)
+            {
+                Weapon weapon = gun.GetComponent<Weapon>();
+                if (weapon.getAmmoInMag() != weapon.getAmmoCapacity() && weapon.getAmmoInReserve() != 0 && !gm.IsPlayerReloading())
+                {
+                    gm.beginWeaponReload();
+                }
+
+            }
+        }
+
+        if(prop != null && Vector3.Distance(rayFromPlayer.origin,hit.point) > pickUpDistance) //check if the held item is too far away from the player
         {
             prop.transform.SetParent(null);
             prop.GetComponent<Rigidbody>().useGravity = true;
@@ -285,5 +345,10 @@ public class FPSBody : MonoBehaviour
     public GameObject getGun()
     {
         return gun;
+    }
+
+    public void deleteGun()
+    {
+        Destroy(gun);
     }
 }
