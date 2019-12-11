@@ -278,7 +278,10 @@ public class GameManager : MonoBehaviour
         if (GameObject.FindGameObjectWithTag("Player"))
         {
             gameManager.player = GameObject.FindGameObjectWithTag("Player");
-            didPlayerHaveGunAtStart = gameManager.player.GetComponent<FPSBody>().getGun() ? true : false;
+            print(player);
+            print(player.GetComponent<FPSBody>());
+            print(player.GetComponent<FPSBody>().getGun());
+            didPlayerHaveGunAtStart = player.GetComponent<FPSBody>().getGun() ? true : false;
         }
     }
 
