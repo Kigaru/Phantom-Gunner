@@ -1,12 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.UI;
 public class SplashButtonController : MonoBehaviour
 {
 
     GameManager gm;
-
+    [SerializeField] private Button SilverButton;
 
     private void Start()
     {
@@ -20,5 +20,20 @@ public class SplashButtonController : MonoBehaviour
     public void exitGame()
     {
         gm.loadLevel(0);
+    }
+
+    public void toggleSilverMode()
+    {
+        gm.iAmSilverOneMode = !gm.iAmSilverOneMode;
+
+        if(gm.iAmSilverOneMode)
+        {
+            SilverButton.image.color = Color.green;
+        }
+        else
+        {
+            SilverButton.image.color = Color.red;
+
+        }
     }
 }

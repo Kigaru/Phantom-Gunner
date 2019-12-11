@@ -54,6 +54,25 @@ public class GameManager : MonoBehaviour
                         updateAmmoText(playerWeapon.getAmmoInMag(), playerWeapon.getAmmoInReserve());
                     }
                 }
+                else
+                {
+                    if (gameManager.player)
+                    {
+                        if (gameManager.player.GetComponent<FPSBody>().getGun())
+                        {
+                            Weapon playerWeapon = gameManager.player.GetComponent<FPSBody>().getGun().GetComponent<Weapon>();
+                            updateAmmoText(playerWeapon.getAmmoInMag(), playerWeapon.getAmmoInReserve());
+                        }
+                        else
+                        {
+                            updateAmmoText(-1, -1);
+                        }
+                    }
+                    else if(ammoText)
+                    {
+                        updateAmmoText(-1, -1);
+                    }
+                }
                 
                 gameManager.healthText = healthText;
                 gameManager.ammoText = ammoText;
@@ -142,24 +161,33 @@ public class GameManager : MonoBehaviour
 
     public void updateHealthText(float health)
     {
-        gameManager.healthText.text = health.ToString();
+        if (gameManager.healthText != null)
+        {
+            gameManager.healthText.text = health.ToString();
+        }
     }
 
     public void updateAmmoText(int ammo, int ammoInReserve)
     {
-        if(ammoInReserve != -1)
+        if (gameManager.ammoText != null)
         {
-            ammoText.text = ammo + "/" + ammoInReserve;
-        }
-        else
-        {
-            ammoText.text = "";
+            if (ammoInReserve != -1)
+            {
+                ammoText.text = ammo + "/" + ammoInReserve;
+            }
+            else
+            {
+                ammoText.text = "";
+            }
         }
     }
 
     public void updateScoreText(int score)
     {
-        gameManager.scoreText.text = score.ToString();
+        if (gameManager.scoreText != null)
+        {
+            gameManager.scoreText.text = score.ToString();
+        }
     }
 
     public void beginWeaponReload()
@@ -181,6 +209,20 @@ public class GameManager : MonoBehaviour
     {
         gameManager.retryRun = false;
         loadLevel(levelNumber);
+
+    } 
+    
+    public void exitBuilding(int levelNumber)
+    {
+        gameManager.retryRun = false;
+        switch (levelNumber)
+        {
+            case 2:
+                loadLevel(1);
+                break;
+            default:
+                break;
+        }
 
     }
 
@@ -226,12 +268,17 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene("Splash");
     }
 
+    public bool retrying()
+    {
+        return retryRun;
+    }
+
     public void snapshotPlayer()
     {
         if (GameObject.FindGameObjectWithTag("Player"))
         {
             gameManager.player = GameObject.FindGameObjectWithTag("Player");
-            didPlayerHaveGunAtStart = player.GetComponent<FPSBody>().getGun() ? true : false;
+            didPlayerHaveGunAtStart = gameManager.player.GetComponent<FPSBody>().getGun() ? true : false;
         }
     }
 

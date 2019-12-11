@@ -28,6 +28,8 @@ public class ControlNPCFSM : MonoBehaviour
     int currentWaypoint;
     float lastSeenPlayer;
     public float npcSpeed = 0.66f;
+    private float iFrame = 3;
+    private float timeSinceLastIFrame = 0;
 
 
     // Start is called before the first frame update
@@ -71,6 +73,10 @@ public class ControlNPCFSM : MonoBehaviour
         {
             handleFollow();
             handleAttack();
+            if(timeSinceLastIFrame < iFrame)
+            {
+                timeSinceLastIFrame += Time.deltaTime;
+            }
         }
     }
 
@@ -130,7 +136,6 @@ public class ControlNPCFSM : MonoBehaviour
             if (Vector3.Distance(GameObject.Find("FPSBody").transform.position, NPCHead.transform.position) < 2)
             {
                 anim.SetBool("withinAttackRange", true);
-                print("aaa");
             }
 
             else if (Time.fixedTime - lastSeenPlayer > 10)
@@ -144,6 +149,11 @@ public class ControlNPCFSM : MonoBehaviour
     {
         if (info.IsName("Attack_Player"))
         {
+            if(timeSinceLastIFrame >= iFrame) 
+            {
+                timeSinceLastIFrame = 0;
+                GameManager.gameManager.getPlayer().GetComponent<Player>().hurt(12);
+            }
             if (Vector3.Distance(GameObject.Find("FPSBody").transform.position, transform.position) > 3)
             {
                 anim.SetBool("withinAttackRange", false);

@@ -57,7 +57,7 @@ public class FPSBody : MonoBehaviour
         forwardMovement = 0;
         sideMovement = 0;
 
-        gm.unPauseGame(); //TODO this design decision is being done because I want the game manager to handle the pause UI in the future
+        gm.unPauseGame(); 
 
     }
 
@@ -244,7 +244,8 @@ public class FPSBody : MonoBehaviour
             // Multiple checks for guns & buttons in a single line
             if (hit.collider.gameObject.tag == "Gun" ||
                 (hit.collider.gameObject.tag == "Movable" && prop == null) || 
-                hit.collider.gameObject.tag == "Ammo") 
+                hit.collider.gameObject.tag == "Ammo" ||
+                hit.collider.gameObject.tag == "Win") 
             {
                 interactableObject = hit.collider.gameObject;
             }
@@ -297,6 +298,9 @@ public class FPSBody : MonoBehaviour
                                 Destroy(interactableObject);
                             }
                         }
+                        break;
+                    case "Win":
+                        gm.win();
                         break;
                     default:
                         break;

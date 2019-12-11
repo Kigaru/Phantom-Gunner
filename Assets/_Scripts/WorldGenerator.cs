@@ -9,11 +9,13 @@ public class WorldGenerator : MonoBehaviour
 
     public GameObject wall;
     public GameObject ground;
+    public GameObject exit;
+    public GameObject shop;
     
     private int[,] worldMap = new int[,]
     {
         { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-        { 1, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
+        { 1, 3, 0, 0, 1, 0, 0, 0, 0, 1 },
         { 1, 1, 1, 0, 1, 1, 0, 1, 0, 1 },
         { 1, 0, 1, 0, 1, 1, 0, 1, 0, 1 },
         { 1, 0, 0, 0, 0, 0, 0, 1, 0, 1 },
@@ -39,16 +41,16 @@ public class WorldGenerator : MonoBehaviour
         { 1, 0, 1, 0, 1, 0, 1, 0, 0, 1 },
         { 1, 0, 1, 0, 1, 0, 1, 1, 0, 1 },
         { 1, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
-        { 1, 1, 1, 1, 1, 1, 1, 0, 1, 1 },
+        { 1, 0, 1, 1, 1, 1, 1, 0, 1, 1 },
         { 1, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
         { 1, 1, 1, 0, 1, 1, 0, 1, 0, 1 },
         { 1, 0, 1, 0, 1, 1, 0, 1, 0, 1 },
-        { 1, 0, 0, 0, 0, 0, 0, 1, 0, 1 },
-        { 1, 0, 1, 1, 1, 1, 1, 1, 0, 1 },
+        { 1, 0, 0, 0, 1, 0, 0, 1, 0, 1 },
+        { 1, 0, 1, 0, 1, 1, 1, 1, 0, 1 },
         { 1, 0, 1, 0, 1, 0, 1, 0, 0, 1 },
         { 1, 0, 1, 0, 1, 0, 1, 1, 0, 1 },
-        { 1, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
-        { 1, 0, 1, 1, 1, 1, 1, 1, 1, 1 },
+        { 1, 0, 1, 0, 0, 0, 0, 0, 0, 1 },
+        { 1, 2, 1, 1, 1, 1, 1, 1, 1, 1 },
     };
 
     // Start is called before the first frame update
@@ -73,12 +75,24 @@ public class WorldGenerator : MonoBehaviour
                 {
                     Instantiate(wall, new Vector3(50.0f - i * 10.0f, 1f, 50 - j * 10), Quaternion.identity, gameObject.transform);
                 }
-                else
+                else if (worldMap[i, j] == 0)
                 {
                     Instantiate(ground, new Vector3(50.0f - i * 10.0f, -2f, 50 - j * 10), Quaternion.identity, gameObject.transform);
                 }
+                else if (worldMap[i, j] == 2)
+                {
+                    GameObject exitBlock = Instantiate(exit, new Vector3(50.0f - i * 10.0f, 1f, 50 - j * 10), Quaternion.identity, gameObject.transform);
+                    exitBlock.GetComponent<Building>().LevelID = 2;
+                }
+                else if (worldMap[i, j] == 3)
+                {
+                    Instantiate(ground, new Vector3(50.0f - i * 10.0f, -2f, 50 - j * 10), Quaternion.identity, gameObject.transform);
+                    Instantiate(shop, new Vector3(50.0f - i * 10.0f, 1f, 50 - j * 10), Quaternion.identity, gameObject.transform);
+                }
             }
         }
+        gameObject.transform.position = new Vector3(-27, 0, -112);
+        gameObject.transform.RotateAround(gameObject.transform.position,gameObject.transform.up, 90);
     }
     void GenerateFromImage()
     {

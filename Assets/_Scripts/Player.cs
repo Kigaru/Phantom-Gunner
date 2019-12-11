@@ -23,13 +23,24 @@ public class Player : MonoBehaviour
             player.GetComponent<Player>().deathPositions = player.GetComponent<Player>().alivePositions;
             player.GetComponent<Player>().alivePositions = new List<GhostPosContainer>();
             player.SetActive(true);
-            player.transform.SetPositionAndRotation(gameObject.transform.position, gameObject.transform.rotation);
-            if(player.GetComponent<Player>().health <= 0)
+            if (gm.retrying())
+            {
+                player.transform.SetPositionAndRotation(gameObject.transform.position, gameObject.transform.rotation);
+            }
+            if (player.GetComponent<Player>().health <= 0)
             {
                 player.GetComponent<Player>().health = cappedHealth;
             }
             gm.updateHealthText(player.GetComponent<Player>().health);
             gm.updateScoreText(player.GetComponent<Player>().score);
+            if (player.GetComponent<FPSBody>().getGun() && !gm.retrying())
+            {
+                gm.updateAmmoText(player.GetComponent<FPSBody>().getGun().GetComponent<Weapon>().getAmmoInMag(), player.GetComponent<FPSBody>().getGun().GetComponent<Weapon>().getAmmoInReserve());
+            }
+            else
+            {
+                gm.updateAmmoText(-1, -1);
+            }
             Destroy(gameObject);
         }
         else
@@ -147,8 +158,11 @@ public class Player : MonoBehaviour
             case "KillPlane":
                 hurt(health);
                 break;
-            case "Win":
-                gm.enterBuilding(2);
+            case "BuildingEnter":
+                gm.enterBuilding(col.gameObject.GetComponent<Building>().LevelID);
+                break;
+            case "BuildingExit":
+                gm.exitBuilding(col.gameObject.GetComponent<Building>().LevelID);
                 break;
             default:
                 break;
