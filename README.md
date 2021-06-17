@@ -1,7 +1,7 @@
 # {PHANTOM GUNNER}
 ver 0.3
 
-Game is available to play online at: https://kigaru.github.io/Phantom-Gunner
+Game is available to play online at: https://kuhaneko.github.io/Phantom-Gunner
 
 *************************
 ## Controls
